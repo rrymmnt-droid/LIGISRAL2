@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EA FC 27 - Israeli Premier League Career Mode</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ea: {
+                            black: '#0b0e14',
+                            card: 'rgba(18, 24, 38, 0.75)',
+                            gold: '#f3ba2f',
+                            green: '#00ff88',
+                            blue: '#1890ff',
+                            red: '#ff4d4f'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Rubik', 'Segoe UI', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Font Rubik & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: radial-gradient(circle at top center, #1a233a 0%, #080a0f 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(18, 24, 38, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 255, 136, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Pitch Grass Styling */
+        .football-pitch {
+            background: radial-gradient(circle, #1b432c 0%, #0d2818 100%);
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+
+        .pitch-line {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 136, 0.4);
+        }
+
+        .glow-green {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .selected-swap {
+            animation: pulse-ring 1.2s infinite;
+            border-color: #00ff88 !important;
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+    </style>
+</head>
+<body class="p-2 md:p-4 text-slate-100 min-h-screen flex flex-col">
+
+    <div id="app" class="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+        <!-- Rendered dynamically by JS -->
+    </div>
+
+    <script>
+        const TEAMS_DATABASE = {
+            "Maccabi Tel Aviv": {
+                name: "מכבי תל אביב",
+                badge: "https://placehold.co/100x100/1e3a8a/ffffff?text=MTA",
+                budget: 15000000,
+                rating: 81,
+                roster: [
+                    { id: "mta_1", name: "רועי משפתי", pos: "GK", num: 1, overall: 75, val: 800000 },
+                    { id: "mta_2", name: "אופק מליקה", pos: "GK", num: 22, overall: 68, val: 400000 },
+                    { id: "mta_3", name: "ג'יימס טאברנייר", pos: "DEF", num: 2, overall: 78, val: 2500000 },
+                    { id: "mta_4", name: "מוחמד עלי קאמארה", pos: "DEF", num: 3, overall: 76, val: 1800000 },
+                    { id: "mta_5", name: "טייריס אסאנטה", pos: "DEF", num: 14, overall: 74, val: 1200000 },
+                    { id: "mta_6", name: "רז שלמה", pos: "DEF", num: 18, overall: 73, val: 900000 },
+                    { id: "mta_7", name: "דני גרופר", pos: "DEF", num: 12, overall: 72, val: 750000 },
+                    { id: "mta_8", name: "נועם בן הרוש", pos: "DEF", num: 28, overall: 70, val: 600000 },
+                    { id: "mta_9", name: "שחר רוזן", pos: "DEF", num: 27, overall: 67, val: 350000 },
+                    { id: "mta_10", name: "איתי מלמה", pos: "DEF", num: 30, overall: 66, val: 300000 },
+                    { id: "mta_11", name: "איתי בן חמו", pos: "DEF", num: 33, overall: 65, val: 250000 },
+                    { id: "mta_12", name: "שגיב יחזקאל", pos: "MID", num: 7, overall: 77, val: 2200000 },
+                    { id: "mta_13", name: "גבי קניקובסקי", pos: "MID", num: 16, overall: 78, val: 2800000 },
+                    { id: "mta_14", name: "כריסטיאן בליץ'", pos: "MID", num: 6, overall: 75, val: 1600000 },
+                    { id: "mta_15", name: "דור פרץ", pos: "MID", num: 42, overall: 79, val: 3200000 },
+                    { id: "mta_16", name: "איסוף סיסוקו", pos: "MID", num: 20, overall: 74, val: 1300000 },
+                    { id: "mta_17", name: "דן גלזר", pos: "MID", num: 8, overall: 73, val: 950000 },
+                    { id: "mta_18", name: "עידו שחר", pos: "MID", num: 36, overall: 71, val: 700000 },
+                    { id: "mta_19", name: "איתמר נוי", pos: "MID", num: 24, overall: 68, val: 450000 },
+                    { id: "mta_20", name: "אושר דוידה", pos: "FWD", num: 11, overall: 76, val: 2100000 },
+                    { id: "mta_21", name: "הליו ואלרה", pos: "FWD", num: 17, overall: 75, val: 1900000 },
+                    { id: "mta_22", name: "הישאם לאיוס", pos: "FWD", num: 10, overall: 74, val: 1400000 },
+                    { id: "mta_23", name: "יון ניקולאסקו", pos: "FWD", num: 9, overall: 77, val: 2400000 },
+                    { id: "mta_24", name: "אלעד מדמון", pos: "FWD", num: 19, overall: 73, val: 1100000 },
+                    { id: "mta_25", name: "אוסטר סוקלר", pos: "FWD", num: 29, overall: 71, val: 800000 },
+                    { id: "mta_26", name: "עילאי בן סימון", pos: "FWD", num: 31, overall: 66, val: 300000 }
+                ]
+            },
+            "Maccabi Haifa": {
+                name: "מכבי חיפה",
+                badge: "https://placehold.co/100x100/15803d/ffffff?text=MAC",
+                budget: 13000000,
+                rating: 80,
+                roster: [
+                    { id: "mh_1", name: "שריף כיוף", pos: "GK", num: 40, overall: 74, val: 900000 },
+                    { id: "mh_2", name: "עומרי גלזר", pos: "GK", num: 1, overall: 76, val: 1500000 },
+                    { id: "mh_3", name: "עומר נירון", pos: "GK", num: 22, overall: 68, val: 350000 },
+                    { id: "mh_4", name: "גלן אלווין", pos: "GK", num: 50, overall: 64, val: 200000 },
+                    { id: "mh_5", name: "שון גולדברג", pos: "DEF", num: 3, overall: 76, val: 1600000 },
+                    { id: "mh_6", name: "פדראו", pos: "DEF", num: 4, overall: 75, val: 1400000 },
+                    { id: "mh_7", name: "זואר קורנו", pos: "DEF", num: 27, overall: 77, val: 2000000 },
+                    { id: "mh_8", name: "זֹהר זסנו", pos: "DEF", num: 2, overall: 72, val: 800000 },
+                    { id: "mh_9", name: "ז'ל באטייל", pos: "DEF", num: 15, overall: 74, val: 1200000 },
+                    { id: "mh_10", name: "נייג'ל לונווייק", pos: "DEF", num: 21, overall: 71, val: 700000 },
+                    { id: "mh_11", name: "ינון פיינגזיכט", pos: "DEF", num: 19, overall: 65, val: 250000 },
+                    { id: "mh_12", name: "נועם שטייפמן", pos: "DEF", num: 29, overall: 64, val: 200000 },
+                    { id: "mh_13", name: "אלעד אמיר", pos: "DEF", num: 32, overall: 63, val: 180000 },
+                    { id: "mh_14", name: "ארד גייסט", pos: "DEF", num: 35, overall: 62, val: 150000 },
+                    { id: "mh_15", name: "צונאמי", pos: "DEF", num: 5, overall: 73, val: 900000 },
+                    { id: "mh_16", name: "עלי מוחמד", pos: "MID", num: 4, overall: 78, val: 2600000 },
+                    { id: "mh_17", name: "איתן אזולאי", pos: "MID", num: 8, overall: 75, val: 1500000 },
+                    { id: "mh_18", name: "קני סייף", pos: "MID", num: 11, overall: 73, val: 900000 },
+                    { id: "mh_19", name: "פדרו בראזאו", pos: "MID", num: 10, overall: 74, val: 1200000 },
+                    { id: "mh_20", name: "ירין לוי", pos: "MID", num: 18, overall: 71, val: 700000 },
+                    { id: "mh_21", name: "ברוניניו", pos: "MID", num: 20, overall: 72, val: 850000 },
+                    { id: "mh_22", name: "יאיר מרדכי", pos: "MID", num: 26, overall: 66, val: 300000 },
+                    { id: "mh_23", name: "עמית ארזי", pos: "MID", num: 31, overall: 64, val: 220000 },
+                    { id: "mh_24", name: "נבוט ראטנר", pos: "MID", num: 33, overall: 63, val: 190000 },
+                    { id: "mh_25", name: "דון סדריק", pos: "MID", num: 34, overall: 65, val: 270000 },
+                    { id: "mh_26", name: "גיא מלמד", pos: "FWD", num: 9, overall: 77, val: 2100000 },
+                    { id: "mh_27", name: "סילווה קאני", pos: "FWD", num: 17, overall: 72, val: 800000 },
+                    { id: "mh_28", name: "איאד חלאילי", pos: "FWD", num: 30, overall: 70, val: 600000 },
+                    { id: "mh_29", name: "אנדריי נובאקוביץ'", pos: "FWD", num: 14, overall: 73, val: 1100000 },
+                    { id: "mh_30", name: "קנג'י גורה", pos: "FWD", num: 7, overall: 72, val: 950000 },
+                    { id: "mh_31", name: "ג'אד שיבלי", pos: "FWD", num: 28, overall: 65, val: 280000 },
+                    { id: "mh_32", name: "ליאם לוסקי", pos: "FWD", num: 36, overall: 64, val: 210000 },
+                    { id: "mh_33", name: "אדם גרימברג", pos: "FWD", num: 38, overall: 63, val: 170000 }
+                ]
+            },
+            "Hapoel Tel Aviv": {
+                name: "הפועל תל אביב",
+                badge: "https://placehold.co/100x100/991b1b/ffffff?text=HTA",
+                budget: 8000000,
+                rating: 75,
+                roster: [
+                    { id: "hta_1", name: "אסף צור", pos: "GK", num: 1, overall: 72, val: 600000 },
+                    { id: "hta_2", name: "דור בנימיני", pos: "GK", num: 22, overall: 65, val: 250000 },
+                    { id: "hta_3", name: "פרנאן מאימבו", pos: "DEF", num: 4, overall: 73, val: 850000 },
+                    { id: "hta_4", name: "דורון ליידנר", pos: "DEF", num: 16, overall: 74, val: 1100000 },
+                    { id: "hta_5", name: "שחר פיבן", pos: "DEF", num: 5, overall: 72, val: 750000 },
+                    { id: "hta_6", name: "טל ארצ'ל", pos: "DEF", num: 3, overall: 70, val: 500000 },
+                    { id: "hta_7", name: "צ'יקו", pos: "DEF", num: 2, overall: 71, val: 650000 },
+                    { id: "hta_8", name: "יאניק ללנדל", pos: "DEF", num: 12, overall: 69, val: 450000 },
+                    { id: "hta_9", name: "מרקוס קוקו", pos: "DEF", num: 18, overall: 73, val: 900000 },
+                    { id: "hta_10", name: "אנדריאן קראייב", pos: "MID", num: 6, overall: 75, val: 1400000 },
+                    { id: "hta_11", name: "אל ים קנצפולסקי", pos: "MID", num: 8, overall: 71, val: 600000 },
+                    { id: "hta_12", name: "רועי אלקוקין", pos: "MID", num: 14, overall: 68, val: 400000 },
+                    { id: "hta_13", name: "יונתן פרבר", pos: "MID", num: 15, overall: 69, val: 450000 },
+                    { id: "hta_14", name: "איתי שביט", pos: "MID", num: 20, overall: 66, val: 300000 },
+                    { id: "hta_15", name: "עמית למקין", pos: "MID", num: 23, overall: 65, val: 250000 },
+                    { id: "hta_16", name: "לוקאס פלקאו", pos: "MID", num: 25, overall: 72, val: 800000 },
+                    { id: "hta_17", name: "עומרי אלטמן", pos: "FWD", num: 10, overall: 75, val: 1300000 },
+                    { id: "hta_18", name: "סתיו טוריאל", pos: "FWD", num: 7, overall: 73, val: 950000 },
+                    { id: "hta_19", name: "אנס מחמיד", pos: "FWD", num: 9, overall: 71, val: 650000 },
+                    { id: "hta_20", name: "רועי קורין", pos: "FWD", num: 11, overall: 70, val: 550000 },
+                    { id: "hta_21", name: "עמנואל בואטנג", pos: "FWD", num: 17, overall: 72, val: 750000 },
+                    { id: "hta_22", name: "סאמי אדם", pos: "FWD", num: 21, overall: 66, val: 300000 },
+                    { id: "hta_23", name: "מור בוסקילה", pos: "FWD", num: 27, overall: 65, val: 260000 },
+                    { id: "hta_24", name: "דאגלס אווסו", pos: "FWD", num: 28, overall: 68, val: 420000 },
+                    { id: "hta_25", name: "דניאל דאפה", pos: "FWD", num: 29, overall: 67, val: 380000 }
+                ]
+            },
+            "Hapoel Beer Sheva": {
+                name: "הפועל באר שבע",
+                badge: "https://placehold.co/100x100/b91c1c/ffffff?text=HBS",
+                budget: 11000000,
+                rating: 79,
+                roster: [
+                    { id: "hbs_1", name: "אופיר מרציאנו", pos: "GK", num: 1, overall: 73, val: 600000 },
+                    { id: "hbs_2", name: "מרקו וולף", pos: "GK", num: 36, overall: 70, val: 450000 },
+                    { id: "hbs_3", name: "מיגל ויטור", pos: "DEF", num: 4, overall: 77, val: 1200000 },
+                    { id: "hbs_4", name: "מתן בלטקסה", pos: "DEF", num: 18, overall: 72, val: 700000 },
+                    { id: "hbs_5", name: "גאיי מיזראחי", pos: "DEF", num: 2, overall: 71, val: 600000 },
+                    { id: "hbs_6", name: "הלדר לופס", pos: "DEF", num: 22, overall: 75, val: 1000000 },
+                    { id: "hbs_7", name: "פדרו אמדור", pos: "DEF", num: 14, overall: 72, val: 750000 },
+                    { id: "hbs_8", name: "אופיר דוידזאדה", pos: "DEF", num: 27, overall: 73, val: 800000 },
+                    { id: "hbs_9", name: "עידן נחמיאס", pos: "DEF", num: 5, overall: 72, val: 700000 },
+                    { id: "hbs_10", name: "ג'יבריל דיופ", pos: "DEF", num: 3, overall: 71, val: 650000 },
+                    { id: "hbs_11", name: "נועם שחר", pos: "DEF", num: 30, overall: 64, val: 200000 },
+                    { id: "hbs_12", name: "איתי רוטמן", pos: "DEF", num: 31, overall: 63, val: 180000 },
+                    { id: "hbs_13", name: "דן ביטון", pos: "MID", num: 10, overall: 78, val: 2500000 },
+                    { id: "hbs_14", name: "אליאל פרץ", pos: "MID", num: 8, overall: 75, val: 1400000 },
+                    { id: "hbs_15", name: "לוקאס ונטורה", pos: "MID", num: 6, overall: 76, val: 1800000 },
+                    { id: "hbs_16", name: "פורסון אמאנקווה", pos: "MID", num: 17, overall: 74, val: 1200000 },
+                    { id: "hbs_17", name: "יוני סטויאנוב", pos: "MID", num: 11, overall: 73, val: 950000 },
+                    { id: "hbs_18", name: "ניב יהושע", pos: "MID", num: 19, overall: 70, val: 550000 },
+                    { id: "hbs_19", name: "איגור זלטנוביץ'", pos: "FWD", num: 9, overall: 77, val: 2300000 },
+                    { id: "hbs_20", name: "חמודי כנעאן", pos: "FWD", num: 7, overall: 76, val: 2000000 },
+                    { id: "hbs_21", name: "אמיר גנאח", pos: "FWD", num: 15, overall: 74, val: 1300000 },
+                    { id: "hbs_22", name: "זאהי אחמד", pos: "FWD", num: 20, overall: 72, val: 800000 },
+                    { id: "hbs_23", name: "יונס מלדה", pos: "FWD", num: 16, overall: 71, val: 700000 },
+                    { id: "hbs_24", name: "ג'אבון איסט", pos: "FWD", num: 23, overall: 73, val: 900000 },
+                    { id: "hbs_25", name: "מוחמד אבו רומי", pos: "FWD", num: 28, overall: 67, val: 350000 },
+                    { id: "hbs_26", name: "ז'ואאו ויקטור", pos: "FWD", num: 29, overall: 70, val: 500000 },
+                    { id: "hbs_27", name: "עמית אוחנה", pos: "FWD", num: 33, overall: 64, val: 210000 },
+                    { id: "hbs_28", name: "אדריאן אוגאריזה", pos: "FWD", num: 35, overall: 69, val: 420000 }
+                ]
+            },
+            "Beitar Jerusalem": {
+                name: "בית\"ר ירושלים",
+                badge: "https://placehold.co/100x100/eab308/000000?text=BJR",
+                budget: 10000000,
+                rating: 78,
+                roster: [
+                    { id: "bj_1", name: "מיגל סילבה", pos: "GK", num: 1, overall: 76, val: 1400000 },
+                    { id: "bj_2", name: "יהונתן עוזר", pos: "GK", num: 22, overall: 65, val: 250000 },
+                    { id: "bj_3", name: "דביר ניר", pos: "GK", num: 33, overall: 62, val: 150000 },
+                    { id: "bj_4", name: "גיל כהן", pos: "DEF", num: 3, overall: 73, val: 850000 },
+                    { id: "bj_5", name: "לוקה גדראני", pos: "DEF", num: 4, overall: 72, val: 750000 },
+                    { id: "bj_6", name: "בריאן קראבאלי", pos: "DEF", num: 2, overall: 71, val: 650000 },
+                    { id: "bj_7", name: "נאנה אנטווי", pos: "DEF", num: 18, overall: 70, val: 550000 },
+                    { id: "bj_8", name: "רועי אלימלך", pos: "DEF", num: 12, overall: 71, val: 600000 },
+                    { id: "bj_9", name: "ירדן כהן", pos: "DEF", num: 16, overall: 70, val: 500000 },
+                    { id: "bj_10", name: "ליאל דרי", pos: "DEF", num: 20, overall: 66, val: 300000 },
+                    { id: "bj_11", name: "עדי יונה", pos: "MID", num: 8, overall: 76, val: 2100000 },
+                    { id: "bj_12", name: "תומר יוספי", pos: "MID", num: 10, overall: 75, val: 1600000 },
+                    { id: "bj_13", name: "בוריס אינו", pos: "MID", num: 6, overall: 74, val: 1200000 },
+                    { id: "bj_14", name: "זיו בן שימול", pos: "MID", num: 14, overall: 69, val: 450000 },
+                    { id: "bj_15", name: "נועם מוצ'ה", pos: "MID", num: 15, overall: 68, val: 400000 },
+                    { id: "bj_16", name: "דניאל וורקו", pos: "MID", num: 21, overall: 66, val: 280000 },
+                    { id: "bj_17", name: "אלקסיס סרנה", pos: "MID", num: 25, overall: 71, val: 650000 },
+                    { id: "bj_18", name: "ירדן שועה", pos: "FWD", num: 7, overall: 79, val: 3500000 },
+                    { id: "bj_19", name: "עומר אצילי", pos: "FWD", num: 11, overall: 78, val: 2800000 },
+                    { id: "bj_20", name: "שון וייסמן", pos: "FWD", num: 9, overall: 76, val: 1800000 },
+                    { id: "bj_21", name: "טימוטי מוזי", pos: "FWD", num: 17, overall: 73, val: 900000 },
+                    { id: "bj_22", name: "ג'ונבוסקו קאלו", pos: "FWD", num: 19, overall: 71, val: 650000 },
+                    { id: "bj_23", name: "יוג'ין אנסה", pos: "FWD", num: 23, overall: 72, val: 750000 },
+                    { id: "bj_24", name: "אורי עזו", pos: "FWD", num: 27, overall: 68, val: 400000 },
+                    { id: "bj_25", name: "רוויד אברג'יל", pos: "FWD", num: 28, overall: 65, val: 250000 },
+                    { id: "bj_26", name: "נבו שדו", pos: "FWD", num: 30, overall: 64, val: 200000 }
+                ]
+            },
+            "Hapoel Haifa": {
+                name: "הפועל חיפה",
+                badge: "https://placehold.co/100x100/dc2626/ffffff?text=HHF",
+                budget: 6500000,
+                rating: 74,
+                roster: [
+                    { id: "hh_1", name: "יואב גראפי", pos: "GK", num: 1, overall: 75, val: 1100000 },
+                    { id: "hh_2", name: "מתן עמבר", pos: "GK", num: 22, overall: 66, val: 280000 },
+                    { id: "hh_3", name: "אורי לוי", pos: "GK", num: 30, overall: 62, val: 150000 },
+                    { id: "hh_4", name: "דור מלול", pos: "DEF", num: 4, overall: 71, val: 400000 },
+                    { id: "hh_5", name: "איבן קריצ'אק", pos: "DEF", num: 5, overall: 72, val: 600000 },
+                    { id: "hh_6", name: "דאריו זופאריץ'", pos: "DEF", num: 6, overall: 73, val: 750000 },
+                    { id: "hh_7", name: "ג'ורג' דיבה", pos: "DEF", num: 3, overall: 70, val: 500000 },
+                    { id: "hh_8", name: "נועם כהן", pos: "DEF", num: 2, overall: 70, val: 480000 },
+                    { id: "hh_9", name: "תמיר ארבל", pos: "DEF", num: 12, overall: 66, val: 280000 },
+                    { id: "hh_10", name: "אריאל מנדי", pos: "DEF", num: 18, overall: 67, val: 320000 },
+                    { id: "hh_11", name: "נאור סבג", pos: "MID", num: 8, overall: 73, val: 800000 },
+                    { id: "hh_12", name: "שי אליאס", pos: "MID", num: 14, overall: 72, val: 700000 },
+                    { id: "hh_13", name: "לירן רוטמן", pos: "MID", num: 10, overall: 72, val: 750000 },
+                    { id: "hh_14", name: "שייח קייטה", pos: "MID", num: 16, overall: 71, val: 600000 },
+                    { id: "hh_15", name: "עידן דהדיה", pos: "MID", num: 20, overall: 67, val: 320000 },
+                    { id: "hh_16", name: "ישראל פחימה", pos: "MID", num: 24, overall: 64, val: 200000 },
+                    { id: "hh_17", name: "יעד גונן", pos: "MID", num: 26, overall: 63, val: 180000 },
+                    { id: "hh_18", name: "סער אלקים", pos: "MID", num: 28, overall: 62, val: 150000 },
+                    { id: "hh_19", name: "עילאי חזן", pos: "MID", num: 29, overall: 63, val: 170000 },
+                    { id: "hh_20", name: "ליאם נחום", pos: "MID", num: 31, overall: 62, val: 140000 },
+                    { id: "hh_21", name: "טל נעים", pos: "MID", num: 33, overall: 61, val: 120000 },
+                    { id: "hh_22", name: "אלון תורג'מן", pos: "FWD", num: 9, overall: 74, val: 1000000 },
+                    { id: "hh_23", name: "ג'יידן בראף", pos: "FWD", num: 7, overall: 73, val: 900000 },
+                    { id: "hh_24", name: "וויליאם אגאדה", pos: "FWD", num: 11, overall: 74, val: 1100000 },
+                    { id: "hh_25", name: "אניס פורת איאש", pos: "FWD", num: 17, overall: 69, val: 450000 },
+                    { id: "hh_26", name: "ווהב חביבאללה", pos: "FWD", num: 19, overall: 68, val: 380000 },
+                    { id: "hh_27", name: "איתי צפרני", pos: "FWD", num: 25, overall: 64, val: 200000 },
+                    { id: "hh_28", name: "אחמד חמאם", pos: "FWD", num: 27, overall: 63, val: 170000 },
+                    { id: "hh_29", name: "שיקנה דיאקיטה", pos: "FWD", num: 32, overall: 68, val: 400000 },
+                    { id: "hh_30", name: "מועתז חמאד", pos: "FWD", num: 35, overall: 63, val: 160000 }
+                ]
+            },
+            "Maccabi Netanya": {
+                name: "מכבי נתניה",
+                badge: "https://placehold.co/100x100/facc15/000000?text=MNT",
+                budget: 6000000,
+                rating: 74,
+                roster: [
+                    { id: "mn_1", name: "סאמו", pos: "GK", num: 1, overall: 72, val: 600000 },
+                    { id: "mn_2", name: "ניב אנטמן", pos: "GK", num: 18, overall: 68, val: 350000 },
+                    { id: "mn_3", name: "דניאל כהן", pos: "GK", num: 22, overall: 63, val: 180000 },
+                    { id: "mn_4", name: "אוליבייה ורדון", pos: "DEF", num: 4, overall: 74, val: 1000000 },
+                    { id: "mn_5", name: "גריגורי מורוזוב", pos: "DEF", num: 3, overall: 72, val: 700000 },
+                    { id: "mn_6", name: "כרם ג'אבר", pos: "DEF", num: 2, overall: 71, val: 600000 },
+                    { id: "mn_7", name: "סבא חבדגיאני", pos: "DEF", num: 5, overall: 70, val: 500000 },
+                    { id: "mn_8", name: "איתי בן שבת", pos: "DEF", num: 14, overall: 68, val: 380000 },
+                    { id: "mn_9", name: "דניס קוליקוב", pos: "DEF", num: 16, overall: 67, val: 320000 },
+                    { id: "mn_10", name: "באקארי קונאטה", pos: "DEF", num: 20, overall: 68, val: 400000 },
+                    { id: "mn_11", name: "אלון אזוגי", pos: "DEF", num: 21, overall: 66, val: 280000 },
+                    { id: "mn_12", name: "עמית כהן", pos: "DEF", num: 25, overall: 65, val: 240000 },
+                    { id: "mn_13", name: "בני פלדמן", pos: "DEF", num: 28, overall: 62, val: 150000 },
+                    { id: "mn_14", name: "מאור לוי", pos: "MID", num: 8, overall: 74, val: 1200000 },
+                    { id: "mn_15", name: "ווילאן סיפריין", pos: "MID", num: 10, overall: 75, val: 1500000 },
+                    { id: "mn_16", name: "עוז בילו", pos: "MID", num: 7, overall: 73, val: 900000 },
+                    { id: "mn_17", name: "גבריאל סימיון", pos: "MID", num: 6, overall: 72, val: 750000 },
+                    { id: "mn_18", name: "נדב נידם", pos: "MID", num: 15, overall: 70, val: 500000 },
+                    { id: "mn_19", name: "בסאם זערורה", pos: "MID", num: 17, overall: 68, val: 380000 },
+                    { id: "mn_20", name: "עזיז אואטארה", pos: "MID", num: 19, overall: 71, val: 600000 },
+                    { id: "mn_21", name: "ליאם כהן", pos: "MID", num: 24, overall: 64, val: 200000 },
+                    { id: "mn_22", name: "עומרי שמיר", pos: "MID", num: 26, overall: 63, val: 170000 },
+                    { id: "mn_23", name: "אלכסיי טלפה", pos: "MID", num: 27, overall: 62, val: 150000 },
+                    { id: "mn_24", name: "איתי שוורצמן", pos: "MID", num: 30, overall: 62, val: 140000 },
+                    { id: "mn_25", name: "דולב חזיזה", pos: "FWD", num: 11, overall: 76, val: 1800000 },
+                    { id: "mn_26", name: "אילון אלמוג", pos: "FWD", num: 9, overall: 72, val: 800000 },
+                    { id: "mn_27", name: "דור חוגי", pos: "FWD", num: 13, overall: 72, val: 750000 },
+                    { id: "mn_28", name: "איסאק", pos: "FWD", num: 23, overall: 70, val: 550000 },
+                    { id: "mn_29", name: "ירין אבוחצירא", pos: "FWD", num: 29, overall: 64, val: 200000 },
+                    { id: "mn_30", name: "מתאוס דאבו", pos: "FWD", num: 31, overall: 68, val: 420000 }
+                ]
+            },
+            "Bnei Sakhnin": {
+                name: "בני סכנין",
+                badge: "https://placehold.co/100x100/16a34a/ffffff?text=SAK",
+                budget: 4500000,
+                rating: 72,
+                roster: [
+                    { id: "sak_1", name: "מוחמד אבו ניל", pos: "GK", num: 1, overall: 71, val: 500000 },
+                    { id: "sak_2", name: "ראול בלבאראו", pos: "GK", num: 22, overall: 67, val: 300000 },
+                    { id: "sak_3", name: "מג'ד סולימאן", pos: "GK", num: 33, overall: 62, val: 150000 },
+                    { id: "sak_4", name: "מארון גאנטוס", pos: "DEF", num: 4, overall: 71, val: 550000 },
+                    { id: "sak_5", name: "איאד אבו עבאד", pos: "DEF", num: 5, overall: 72, val: 650000 },
+                    { id: "sak_6", name: "אורי דהן", pos: "DEF", num: 3, overall: 70, val: 480000 },
+                    { id: "sak_7", name: "לירוי אווסו", pos: "DEF", num: 2, overall: 69, val: 420000 },
+                    { id: "sak_8", name: "עמית קרדי", pos: "DEF", num: 12, overall: 66, val: 280000 },
+                    { id: "sak_9", name: "מוחמד גנאמה", pos: "DEF", num: 15, overall: 65, val: 240000 },
+                    { id: "sak_10", name: "עימאד אלדין עבדאללה", pos: "DEF", num: 18, overall: 67, val: 320000 },
+                    { id: "sak_11", name: "סנה גומס", pos: "DEF", num: 20, overall: 68, val: 380000 },
+                    { id: "sak_12", name: "דמיטרי קווארה", pos: "DEF", num: 24, overall: 66, val: 270000 },
+                    { id: "sak_13", name: "סהר תאג'י", pos: "MID", num: 8, overall: 73, val: 850000 },
+                    { id: "sak_14", name: "מודסטאס וורובז'ובאס", pos: "MID", num: 6, overall: 71, val: 600000 },
+                    { id: "sak_15", name: "עילאי חג'ג'", pos: "MID", num: 10, overall: 72, val: 700000 },
+                    { id: "sak_16", name: "אחמד טאהא", pos: "MID", num: 14, overall: 66, val: 280000 },
+                    { id: "sak_17", name: "מתיאו קודג'ו", pos: "MID", num: 16, overall: 68, val: 380000 },
+                    { id: "sak_18", name: "חאבייר בושנאק", pos: "MID", num: 17, overall: 65, val: 250000 },
+                    { id: "sak_19", name: "לואי חאלף", pos: "MID", num: 19, overall: 67, val: 330000 },
+                    { id: "sak_20", name: "שאקר אבו חוסיין", pos: "MID", num: 21, overall: 64, val: 200000 },
+                    { id: "sak_21", name: "נורברטו קרלוס", pos: "MID", num: 23, overall: 69, val: 450000 },
+                    { id: "sak_22", name: "מוחמד אבו ריא", pos: "MID", num: 25, overall: 63, val: 180000 },
+                    { id: "sak_23", name: "באסל חורי", pos: "MID", num: 27, overall: 66, val: 290000 },
+                    { id: "sak_24", name: "אכרם זוביידאת", pos: "MID", num: 28, overall: 62, val: 150000 },
+                    { id: "sak_25", name: "עלי גנאמה", pos: "MID", num: 29, overall: 61, val: 130000 },
+                    { id: "sak_26", name: "ביאן אבו ריא", pos: "MID", num: 30, overall: 60, val: 110000 },
+                    { id: "sak_27", name: "אנטוניו ספר", pos: "FWD", num: 7, overall: 74, val: 1100000 },
+                    { id: "sak_28", name: "דניאל פאראשקיב", pos: "FWD", num: 9, overall: 72, val: 800000 },
+                    { id: "sak_29", name: "אחמד סלמן", pos: "FWD", num: 11, overall: 70, val: 550000 },
+                    { id: "sak_30", name: "איתמר שפירו", pos: "FWD", num: 26, overall: 66, val: 280000 },
+                    { id: "sak_31", name: "סובחי אבו יונס", pos: "FWD", num: 31, overall: 63, val: 170000 }
+                ]
+            },
+            "Ironi Tiberias": {
+                name: "עירוני טבריה",
+                badge: "https://placehold.co/100x100/0284c7/ffffff?text=TIB",
+                budget: 4000000,
+                rating: 71,
+                roster: [
+                    { id: "tib_1", name: "גד עמוס", pos: "GK", num: 1, overall: 72, val: 550000 },
+                    { id: "tib_2", name: "עידו שרון", pos: "GK", num: 22, overall: 65, val: 240000 },
+                    { id: "tib_3", name: "ג'ונס אבו גנימה", pos: "GK", num: 31, overall: 61, val: 130000 },
+                    { id: "tib_4", name: "אונדרז'יי באצ'ו", pos: "DEF", num: 4, overall: 71, val: 550000 },
+                    { id: "tib_5", name: "זיו מורגן", pos: "DEF", num: 3, overall: 70, val: 480000 },
+                    { id: "tib_6", name: "ממאדו סמבה קאנדה", pos: "DEF", num: 5, overall: 69, val: 400000 },
+                    { id: "tib_7", name: "נהוראי חן", pos: "DEF", num: 2, overall: 66, val: 270000 },
+                    { id: "tib_8", name: "גיא סנקר", pos: "DEF", num: 12, overall: 65, val: 230000 },
+                    { id: "tib_9", name: "רון אונגר", pos: "DEF", num: 14, overall: 66, val: 260000 },
+                    { id: "tib_10", name: "גל מטוק", pos: "DEF", num: 16, overall: 64, val: 200000 },
+                    { id: "tib_11", name: "רן חילוה", pos: "DEF", num: 18, overall: 63, val: 170000 },
+                    { id: "tib_12", name: "יהונתן חסון", pos: "DEF", num: 20, overall: 62, val: 150000 },
+                    { id: "tib_13", name: "עדן שמיר", pos: "MID", num: 6, overall: 74, val: 1100000 },
+                    { id: "tib_14", name: "דוד קלטינס", pos: "MID", num: 8, overall: 71, val: 550000 },
+                    { id: "tib_15", name: "בר כהן", pos: "MID", num: 10, overall: 70, val: 480000 },
+                    { id: "tib_16", name: "ארי כהן", pos: "MID", num: 15, overall: 66, val: 280000 },
+                    { id: "tib_17", name: "ניב גוטליב", pos: "MID", num: 17, overall: 67, val: 320000 },
+                    { id: "tib_18", name: "בר נאווי", pos: "MID", num: 19, overall: 68, val: 380000 },
+                    { id: "tib_19", name: "ירין סרדל", pos: "MID", num: 21, overall: 65, val: 240000 },
+                    { id: "tib_20", name: "כריס קואקו", pos: "MID", num: 23, overall: 69, val: 420000 },
+                    { id: "tib_21", name: "רועי שחר", pos: "MID", num: 25, overall: 63, val: 180000 },
+                    { id: "tib_22", name: "רביד שמאי", pos: "MID", num: 27, overall: 62, val: 150000 },
+                    { id: "tib_23", name: "ירין סוויסה", pos: "MID", num: 28, overall: 61, val: 130000 },
+                    { id: "tib_24", name: "קייס גאנם", pos: "FWD", num: 9, overall: 72, val: 750000 },
+                    { id: "tib_25", name: "סמיר פרהוד", pos: "FWD", num: 7, overall: 69, val: 450000 },
+                    { id: "tib_26", name: "מנסור באדג'י", pos: "FWD", num: 11, overall: 68, val: 380000 },
+                    { id: "tib_27", name: "ארטור מיראניאן", pos: "FWD", num: 13, overall: 70, val: 500000 },
+                    { id: "tib_28", name: "דניאל גולאני", pos: "FWD", num: 24, overall: 65, val: 230000 },
+                    { id: "tib_29", name: "אגם יהודה", pos: "FWD", num: 26, overall: 62, val: 160000 },
+                    { id: "tib_30", name: "ננה גמבלה", pos: "FWD", num: 29, overall: 66, val: 270000 }
+                ]
+            },
+            "Hapoel Ramat Gan": {
+                name: "הפועל רמת גן",
+                badge: "https://placehold.co/100x100/c026d3/ffffff?text=HRG",
+                budget: 3500000,
+                rating: 70,
+                roster: [
+                    { id: "hrg_1", name: "אריק ינקו", pos: "GK", num: 1, overall: 71, val: 450000 },
+                    { id: "hrg_2", name: "בן פרדרו", pos: "GK", num: 22, overall: 64, val: 200000 },
+                    { id: "hrg_3", name: "עמית רייף", pos: "GK", num: 30, overall: 61, val: 120000 },
+                    { id: "hrg_4", name: "תומר הרן", pos: "GK", num: 33, overall: 62, val: 140000 },
+                    { id: "hrg_5", name: "ז'וטה גונסאלבס", pos: "DEF", num: 4, overall: 70, val: 450000 },
+                    { id: "hrg_6", name: "מרסיו סילבה", pos: "DEF", num: 5, overall: 69, val: 400000 },
+                    { id: "hrg_7", name: "דודי טוויטו", pos: "DEF", num: 3, overall: 69, val: 380000 },
+                    { id: "hrg_8", name: "גטאצ'ו יאבלו", pos: "DEF", num: 2, overall: 66, val: 260000 },
+                    { id: "hrg_9", name: "דניאל טישלר", pos: "DEF", num: 12, overall: 65, val: 220000 },
+                    { id: "hrg_10", name: "נועם שוורץ", pos: "DEF", num: 14, overall: 64, val: 190000 },
+                    { id: "hrg_11", name: "עמית צור", pos: "DEF", num: 16, overall: 63, val: 170000 },
+                    { id: "hrg_12", name: "עומר יצחק", pos: "DEF", num: 18, overall: 62, val: 150000 },
+                    { id: "hrg_13", name: "פרד איברהים", pos: "DEF", num: 20, overall: 65, val: 230000 },
+                    { id: "hrg_14", name: "אריק מנש", pos: "DEF", num: 25, overall: 61, val: 130000 },
+                    { id: "hrg_15", name: "מקסים פלקושצ'נקו", pos: "MID", num: 10, overall: 74, val: 1000000 },
+                    { id: "hrg_16", name: "גוני נאור", pos: "MID", num: 6, overall: 72, val: 700000 },
+                    { id: "hrg_17", name: "סרדז'אן מיכאילוביץ'", pos: "MID", num: 8, overall: 71, val: 550000 },
+                    { id: "hrg_18", name: "תמיר גלזר", pos: "MID", num: 15, overall: 69, val: 420000 },
+                    { id: "hrg_19", name: "משה סמל", pos: "MID", num: 17, overall: 65, val: 220000 },
+                    { id: "hrg_20", name: "אולי כהן ברגמן", pos: "MID", num: 19, overall: 64, val: 190000 },
+                    { id: "hrg_21", name: "כריסטופר בוניפייס", pos: "MID", num: 21, overall: 67, val: 310000 },
+                    { id: "hrg_22", name: "עידו אולי", pos: "MID", num: 23, overall: 65, val: 230000 },
+                    { id: "hrg_23", name: "אופק עובדיה", pos: "MID", num: 27, overall: 63, val: 170000 },
+                    { id: "hrg_24", name: "עידו מיזראחי", pos: "MID", num: 28, overall: 62, val: 150000 },
+                    { id: "hrg_25", name: "מריוס נוביסי", pos: "FWD", num: 9, overall: 71, val: 600000 },
+                    { id: "hrg_26", name: "לואן קמפוס", pos: "FWD", num: 7, overall: 70, val: 500000 },
+                    { id: "hrg_27", name: "מתן חוזז", pos: "FWD", num: 11, overall: 71, val: 650000 },
+                    { id: "hrg_28", name: "דוד אסנקה", pos: "FWD", num: 24, overall: 66, val: 260000 },
+                    { id: "hrg_29", name: "עידן בראנס", pos: "FWD", num: 26, overall: 64, val: 200000 }
+                ]
+            },
+            "Hapoel Jerusalem": {
+                name: "הפועל ירושלים",
+                badge: "https://placehold.co/100x100/ea580c/ffffff?text=HJR",
+                budget: 5000000,
+                rating: 73,
+                roster: [
+                    { id: "hj_1", name: "נועם שביט", pos: "GK", num: 1, overall: 70, val: 400000 },
+                    { id: "hj_2", name: "בן גורדין", pos: "GK", num: 22, overall: 65, val: 220000 },
+                    { id: "hj_3", name: "גיא בר", pos: "GK", num: 30, overall: 62, val: 140000 },
+                    { id: "hj_4", name: "נדב זמיר", pos: "GK", num: 33, overall: 61, val: 120000 },
+                    { id: "hj_5", name: "עילאי טובים", pos: "GK", num: 55, overall: 60, val: 100000 },
+                    { id: "hj_6", name: "נועם מלמוד", pos: "DEF", num: 4, overall: 72, val: 650000 },
+                    { id: "hj_7", name: "יונתן לייש", pos: "DEF", num: 3, overall: 70, val: 480000 },
+                    { id: "hj_8", name: "עומר אגבדיש", pos: "DEF", num: 2, overall: 69, val: 400000 },
+                    { id: "hj_9", name: "לאון מזרחי", pos: "DEF", num: 12, overall: 68, val: 350000 },
+                    { id: "hj_10", name: "אופק נדיר", pos: "DEF", num: 16, overall: 67, val: 300000 },
+                    { id: "hj_11", name: "זוברו שראני", pos: "DEF", num: 18, overall: 71, val: 550000 },
+                    { id: "hj_12", name: "הילאי מלמן", pos: "DEF", num: 20, overall: 64, val: 200000 },
+                    { id: "hj_13", name: "תמיר הימוביץ'", pos: "DEF", num: 24, overall: 63, val: 170000 },
+                    { id: "hj_14", name: "עידן כהן", pos: "DEF", num: 25, overall: 65, val: 230000 },
+                    { id: "hj_15", name: "אילאי מדמון", pos: "MID", num: 6, overall: 73, val: 800000 },
+                    { id: "hj_16", name: "אינאו סדה", pos: "MID", num: 8, overall: 71, val: 550000 },
+                    { id: "hj_17", name: "ינאי דיסטלפלד", pos: "MID", num: 10, overall: 69, val: 420000 },
+                    { id: "hj_18", name: "רז יחזקאל", pos: "MID", num: 14, overall: 66, val: 260000 },
+                    { id: "hj_19", name: "עומר אבוהב", pos: "MID", num: 15, overall: 67, val: 300000 },
+                    { id: "hj_20", name: "נדים ורסנה", pos: "MID", num: 17, overall: 65, val: 220000 },
+                    { id: "hj_21", name: "חמזה מוחמד", pos: "MID", num: 19, overall: 68, val: 380000 },
+                    { id: "hj_22", name: "נתנאל שפראו", pos: "MID", num: 21, overall: 64, val: 190000 },
+                    { id: "hj_23", name: "אוקון ריימונד", pos: "MID", num: 23, overall: 69, val: 450000 },
+                    { id: "hj_24", name: "כריסט טיאהי", pos: "MID", num: 26, overall: 70, val: 500000 },
+                    { id: "hj_25", name: "אוהד אלמגור", pos: "FWD", num: 7, overall: 73, val: 850000 },
+                    { id: "hj_26", name: "ויטאלי דמאשקאן", pos: "FWD", num: 9, overall: 72, val: 750000 },
+                    { id: "hj_27", name: "סאני עבדולסלאם", pos: "FWD", num: 11, overall: 69, val: 420000 },
+                    { id: "hj_28", name: "אנדרו אידוקו", pos: "FWD", num: 27, overall: 68, val: 380000 },
+                    { id: "hj_29", name: "מוחמד דיאב", pos: "FWD", num: 28, overall: 64, val: 200000 },
+                    { id: "hj_30", name: "ישראל דאפה", pos: "FWD", num: 29, overall: 66, val: 270000 }
+                ]
+            }
+        };
+
+        let state = {
+            screen: 'SETUP', // SETUP, MAIN
+            activeTab: 'DASHBOARD', // DASHBOARD, TACTICS, TRANSFERS, STANDINGS, MATCH
+            manager: {
+                name: '',
+                photo: 'https://placehold.co/150x150/1e293b/ffffff?text=Manager'
+            },
+            userClubKey: 'Maccabi Tel Aviv',
+            userClub: null,
+            squad: [],
+            startingXI: [],
+            bench: [],
+            budget: 0,
+            formation: '4-3-3',
+            market: [],
+            standings: [],
+            currentRound: 1,
+            selectedPitchIndex: null,
+            selectedBenchIndex: null,
+            matchSim: {
+                inProgress: false,
+                homeTeam: null,
+                awayTeam: null,
+                homeGoals: 0,
+                awayGoals: 0,
+                events: [],
+                timer: 0
+            }
+        };
+
+        function initApp() {
+            render();
+        }
+
+        const FORMATIONS = {
+            '4-3-3': [
+                { pos: 'GK', x: 50, y: 88 },
+                { pos: 'DEF', x: 15, y: 70 },
+                { pos: 'DEF', x: 38, y: 73 },
+                { pos: 'DEF', x: 62, y: 73 },
+                { pos: 'DEF', x: 85, y: 70 },
+                { pos: 'MID', x: 30, y: 48 },
+                { pos: 'MID', x: 50, y: 52 },
+                { pos: 'MID', x: 70, y: 48 },
+                { pos: 'FWD', x: 20, y: 22 },
+                { pos: 'FWD', x: 50, y: 18 },
+                { pos: 'FWD', x: 80, y: 22 }
+            ],
+            '4-2-3-1': [
+                { pos: 'GK', x: 50, y: 88 },
+                { pos: 'DEF', x: 15, y: 70 },
+                { pos: 'DEF', x: 38, y: 73 },
+                { pos: 'DEF', x: 62, y: 73 },
+                { pos: 'DEF', x: 85, y: 70 },
+                { pos: 'MID', x: 35, y: 58 },
+                { pos: 'MID', x: 65, y: 58 },
+                { pos: 'MID', x: 20, y: 38 },
+                { pos: 'MID', x: 50, y: 35 },
+                { pos: 'MID', x: 80, y: 38 },
+                { pos: 'FWD', x: 50, y: 18 }
+            ],
+            '3-5-2': [
+                { pos: 'GK', x: 50, y: 88 },
+                { pos: 'DEF', x: 25, y: 72 },
+                { pos: 'DEF', x: 50, y: 75 },
+                { pos: 'DEF', x: 75, y: 72 },
+                { pos: 'MID', x: 12, y: 48 },
+                { pos: 'MID', x: 35, y: 52 },
+                { pos: 'MID', x: 50, y: 50 },
+                { pos: 'MID', x: 65, y: 52 },
+                { pos: 'MID', x: 88, y: 48 },
+                { pos: 'FWD', x: 35, y: 20 },
+                { pos: 'FWD', x: 65, y: 20 }
+            ]
+        };
+
+        function startCareer() {
+            const nameInput = document.getElementById('manager-name-input');
+            if (nameInput && nameInput.value.trim() !== '') {
+                state.manager.name = nameInput.value.trim();
+            } else {
+                state.manager.name = 'מאמן ראשי';
+            }
+
+            const clubData = TEAMS_DATABASE[state.userClubKey];
+            state.userClub = JSON.parse(JSON.stringify(clubData));
+            state.squad = JSON.parse(JSON.stringify(clubData.roster));
+            state.budget = clubData.budget;
+
+            // Auto select starting XI and Bench
+            state.startingXI = state.squad.slice(0, 11);
+            state.bench = state.squad.slice(11);
+
+            // Populate initial Transfer Market with players from other clubs
+            state.market = [];
+            Object.keys(TEAMS_DATABASE).forEach(key => {
+                if (key !== state.userClubKey) {
+                    const otherTeam = TEAMS_DATABASE[key];
+                    otherTeam.roster.forEach(p => {
+                        state.market.push({
+                            ...p,
+                            clubName: otherTeam.name
+                        });
+                    });
+                }
+            });
+
+            // Populate Initial League Standings Table
+            state.standings = Object.keys(TEAMS_DATABASE).map(key => ({
+                key: key,
+                name: TEAMS_DATABASE[key].name,
+                badge: TEAMS_DATABASE[key].badge,
+                played: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                gf: 0,
+                ga: 0,
+                gd: 0,
+                pts: 0
+            }));
+
+            state.screen = 'MAIN';
+            render();
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    state.manager.photo = e.target.result;
+                    const preview = document.getElementById('manager-photo-preview');
+                    if (preview) preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handlePitchPlayerClick(index) {
+            if (state.selectedPitchIndex === null && state.selectedBenchIndex === null) {
+                state.selectedPitchIndex = index;
+            } else if (state.selectedPitchIndex !== null) {
+                if (state.selectedPitchIndex === index) {
+                    state.selectedPitchIndex = null; // Deselect
+                } else {
+                    // Swap starting XI players
+                    const temp = state.startingXI[state.selectedPitchIndex];
+                    state.startingXI[state.selectedPitchIndex] = state.startingXI[index];
+                    state.startingXI[index] = temp;
+                    state.selectedPitchIndex = null;
+                }
+            } else if (state.selectedBenchIndex !== null) {
+                // Swap Bench player with Pitch player
+                const temp = state.startingXI[index];
+                state.startingXI[index] = state.bench[state.selectedBenchIndex];
+                state.bench[state.selectedBenchIndex] = temp;
+                state.selectedBenchIndex = null;
+            }
+            render();
+        }
+
+        function handleBenchPlayerClick(index) {
+            if (state.selectedPitchIndex !== null) {
+                // Swap Pitch player with Bench player
+                const temp = state.startingXI[state.selectedPitchIndex];
+                state.startingXI[state.selectedPitchIndex] = state.bench[index];
+                state.bench[index] = temp;
+                state.selectedPitchIndex = null;
+            } else if (state.selectedBenchIndex === index) {
+                state.selectedBenchIndex = null; // Deselect
+            } else {
+                state.selectedBenchIndex = index;
+            }
+            render();
+        }
+
+        function editPlayerNumber(playerId) {
+            const player = state.squad.find(p => p.id === playerId);
+            if (!player) return;
+            const newNum = prompt(`הזן מספר חולצה חדש עבור ${player.name} (1-99):`, player.num);
+            if (newNum !== null) {
+                const parsed = parseInt(newNum, 10);
+                if (!isNaN(parsed) && parsed >= 1 && parsed <= 99) {
+                    player.num = parsed;
+                    // Update reference in XI and bench
+                    const inXI = state.startingXI.find(p => p.id === playerId);
+                    if (inXI) inXI.num = parsed;
+                    const inBench = state.bench.find(p => p.id === playerId);
+                    if (inBench) inBench.num = parsed;
+                    render();
+                } else {
+                    alert('אנא הזן מספר תקין בין 1 ל-99');
+                }
+            }
+        }
+
+        function buyPlayer(playerId) {
+            const marketIndex = state.market.findIndex(p => p.id === playerId);
+            if (marketIndex === -1) return;
+
+            const player = state.market[marketIndex];
+            
+            // Check budget
+            if (state.budget < player.val) {
+                alert('אין למועדון מספיק תקציב לרכישת שחקן זה!');
+                return;
+            }
+
+            // Check duplicate
+            if (state.squad.some(p => p.id === player.id)) {
+                alert('שחקן זה כבר קיים בסגל שלך!');
+                return;
+            }
+
+            // Deduct funds and add player
+            state.budget -= player.val;
+            const newPlayer = { ...player };
+            delete newPlayer.clubName;
+
+            state.squad.push(newPlayer);
+            state.bench.push(newPlayer); // Adds to bench
+
+            // Remove from market completely
+            state.market.splice(marketIndex, 1);
+
+            alert(`ברכות! השחקן ${player.name} נרכש בהצלחה על ידי ${state.userClub.name}!`);
+            render();
+        }
+
+        function sellPlayer(playerId) {
+            if (state.squad.length <= 11) {
+                alert('לא ניתן למכור שחקנים! הסגל חייב להכיל לפחות 11 שחקנים.');
+                return;
+            }
+
+            const squadIndex = state.squad.findIndex(p => p.id === playerId);
+            if (squadIndex === -1) return;
+
+            const player = state.squad[squadIndex];
+
+            // Remove from Squad
+            state.squad.splice(squadIndex, 1);
+
+            // Remove from Starting XI or Bench
+            const xiIndex = state.startingXI.findIndex(p => p.id === playerId);
+            if (xiIndex !== -1) {
+                // If removed from XI, promote first bench player
+                state.startingXI.splice(xiIndex, 1);
+                if (state.bench.length > 0) {
+                    state.startingXI.push(state.bench.shift());
+                }
+            } else {
+                const benchIndex = state.bench.findIndex(p => p.id === playerId);
+                if (benchIndex !== -1) {
+                    state.bench.splice(benchIndex, 1);
+                }
+            }
+
+            // Add value to Budget
+            state.budget += player.val;
+
+            // Return to market
+            state.market.push({
+                ...player,
+                clubName: 'שחקן חופשי'
+            });
+
+            alert(`השחקן ${player.name} נמכר בהצלחה תמורת ₪${player.val.toLocaleString()}!`);
+            render();
+        }
+
+        function startMatchSimulation() {
+            if (state.matchSim.inProgress) return;
+
+            // Pick random opponent
+            const otherTeams = Object.keys(TEAMS_DATABASE).filter(k => k !== state.userClubKey);
+            const opponentKey = otherTeams[Math.floor(Math.random() * otherTeams.length)];
+            const opponentData = TEAMS_DATABASE[opponentKey];
+
+            state.matchSim = {
+                inProgress: true,
+                homeTeam: state.userClub.name,
+                awayTeam: opponentData.name,
+                homeGoals: 0,
+                awayGoals: 0,
+                events: [],
+                timer: 0
+            };
+
+            render();
+
+            const interval = setInterval(() => {
+                state.matchSim.timer += 5;
+
+                // Event check
+                if (Math.random() < 0.35 && state.matchSim.timer <= 90) {
+                    const isHome = Math.random() > 0.45;
+                    const teamName = isHome ? state.matchSim.homeTeam : state.matchSim.awayTeam;
+                    
+                    let scorerName = "שחקן התקפה";
+                    
+                    if (isHome) {
+                        // Filter user squad - EXCLUDE GOALKEEPERS (GK)
+                        const outfieldPlayers = state.startingXI.filter(p => p.pos !== 'GK');
+                        if (outfieldPlayers.length > 0) {
+                            const scorer = outfieldPlayers[Math.floor(Math.random() * outfieldPlayers.length)];
+                            scorerName = scorer.name;
+                        } else {
+                            scorerName = "חלוץ";
+                        }
+                        state.matchSim.homeGoals++;
+                    } else {
+                        // Filter opponent roster - EXCLUDE GOALKEEPERS (GK)
+                        const outfieldOpponents = opponentData.roster.filter(p => p.pos !== 'GK');
+                        if (outfieldOpponents.length > 0) {
+                            const scorer = outfieldOpponents[Math.floor(Math.random() * outfieldOpponents.length)];
+                            scorerName = scorer.name;
+                        } else {
+                            scorerName = "שחקן יריבה";
+                        }
+                        state.matchSim.awayGoals++;
+                    }
+
+                    state.matchSim.events.unshift({
+                        minute: state.matchSim.timer,
+                        text: `⚽ שער! ${scorerName} הבקיע עבור ${teamName}! (${state.matchSim.homeGoals} - ${state.matchSim.awayGoals})`
+                    });
+                }
+
+                if (state.matchSim.timer >= 90) {
+                    clearInterval(interval);
+                    state.matchSim.inProgress = false;
+                    state.matchSim.events.unshift({
+                        minute: 90,
+                        text: `🏁 שריקת הסיום! התוצאה הסופית: ${state.matchSim.homeTeam} ${state.matchSim.homeGoals} - ${state.matchSim.awayGoals} ${state.matchSim.awayTeam}`
+                    });
+
+                    // Update standings
+                    updateStandingsAfterMatch(state.matchSim.homeTeam, state.matchSim.awayTeam, state.matchSim.homeGoals, state.matchSim.awayGoals);
+                    state.currentRound++;
+                }
+
+                render();
+            }, 300);
+        }
+
+        function updateStandingsAfterMatch(homeName, awayName, homeG, awayG) {
+            const homeEntry = state.standings.find(s => s.name === homeName);
+            const awayEntry = state.standings.find(s => s.name === awayName);
+
+            if (homeEntry && awayEntry) {
+                homeEntry.played++;
+                awayEntry.played++;
+                homeEntry.gf += homeG;
+                homeEntry.ga += awayG;
+                homeEntry.gd = homeEntry.gf - homeEntry.ga;
+
+                awayEntry.gf += awayG;
+                awayEntry.ga += homeG;
+                awayEntry.gd = awayEntry.gf - awayEntry.ga;
+
+                if (homeG > awayG) {
+                    homeEntry.wins++;
+                    homeEntry.pts += 3;
+                    awayEntry.losses++;
+                } else if (homeG < awayG) {
+                    awayEntry.wins++;
+                    awayEntry.pts += 3;
+                    homeEntry.losses++;
+                } else {
+                    homeEntry.draws++;
+                    homeEntry.pts += 1;
+                    awayEntry.draws++;
+                    awayEntry.pts += 1;
+                }
+
+                // Sort standings
+                state.standings.sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
+            }
+        }
+
+        function render() {
+            const app = document.getElementById('app');
+
+            if (state.screen === 'SETUP') {
+                app.innerHTML = renderSetupScreen();
+            } else {
+                app.innerHTML = renderMainScreen();
+            }
+        }
+
+        function renderSetupScreen() {
+            return `
+                <div class="flex-1 flex items-center justify-center py-6">
+                    <div class="glass-panel p-6 md:p-10 rounded-2xl max-w-2xl w-full border border-slate-700 shadow-2xl">
+                        <div class="text-center mb-8">
+                            <h1 class="text-3xl md:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-green-400 to-blue-500 mb-2">
+                                EA FC 27
+                            </h1>
+                            <p class="text-slate-400 text-sm md:text-base font-medium">קריירת מאמן - ליגת WINNER עונת 2026/27</p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Manager Profile Setup -->
+                            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+                                <div class="relative group">
+                                    <img id="manager-photo-preview" src="${state.manager.photo}" class="w-24 h-24 rounded-full object-cover border-2 border-ea-green shadow-lg" alt="Manager">
+                                    <label for="photo-input" class="absolute bottom-0 right-0 bg-ea-green text-slate-950 p-2 rounded-full cursor-pointer hover:scale-110 transition shadow-md">
+                                        <i class="fas fa-camera text-xs"></i>
+                                    </label>
+                                    <input type="file" id="photo-input" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+                                </div>
+                                <div class="flex-1 w-full">
+                                    <label class="block text-xs text-slate-400 mb-1 font-semibold">שם המאמן/ת</label>
+                                    <input type="text" id="manager-name-input" value="${state.manager.name}" placeholder="הזן את שמך..." class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-ea-green transition">
+                                </div>
+                            </div>
+
+                            <!-- Team Selection -->
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-3">בחר קבוצת אימון:</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-1">
+                                    ${Object.keys(TEAMS_DATABASE).map(key => {
+                                        const team = TEAMS_DATABASE[key];
+                                        const isSelected = state.userClubKey === key;
+                                        return `
+                                            <div onclick="state.userClubKey = '${key}'; render();" class="p-3 rounded-xl border cursor-pointer transition flex flex-col items-center gap-2 ${isSelected ? 'bg-ea-green/10 border-ea-green text-white glow-green' : 'glass-card border-slate-800 text-slate-400 hover:text-white'}">
+                                                <img src="${team.badge}" class="w-10 h-10 object-contain" alt="${team.name}">
+                                                <span class="text-xs font-bold text-center">${team.name}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+
+                            <button onclick="startCareer()" class="w-full py-4 bg-gradient-to-r from-ea-green to-emerald-600 text-slate-950 font-black text-lg rounded-xl hover:opacity-90 transition shadow-lg shadow-emerald-900/30">
+                                להתחלת הקריירה <i class="fas fa-play mr-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMainScreen() {
+            return `
+                <!-- Top Navigation Header -->
+                <header class="glass-panel rounded-xl p-4 mb-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <img src="${state.manager.photo}" class="w-12 h-12 rounded-full object-cover border border-ea-green" alt="Manager">
+                        <div>
+                            <h2 class="font-bold text-lg text-white">${state.manager.name}</h2>
+                            <div class="flex items-center gap-2 text-xs text-slate-400">
+                                <span class="text-ea-green font-semibold">${state.userClub.name}</span>
+                                <span>•</span>
+                                <span>תקציב: ₪${state.budget.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <div class="flex flex-wrap gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                        <button onclick="state.activeTab = 'DASHBOARD'; render();" class="px-3 py-2 rounded-lg text-xs font-semibold transition ${state.activeTab === 'DASHBOARD' ? 'bg-ea-green text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}">
+                            <i class="fas fa-chart-line ml-1"></i> מסך ראשי
+                        </button>
+                        <button onclick="state.activeTab = 'TACTICS'; render();" class="px-3 py-2 rounded-lg text-xs font-semibold transition ${state.activeTab === 'TACTICS' ? 'bg-ea-green text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}">
+                            <i class="fas fa-users-cog ml-1"></i> הרכב וטקטיקה
+                        </button>
+                        <button onclick="state.activeTab = 'TRANSFERS'; render();" class="px-3 py-2 rounded-lg text-xs font-semibold transition ${state.activeTab === 'TRANSFERS' ? 'bg-ea-green text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}">
+                            <i class="fas fa-exchange-alt ml-1"></i> חלון העברות
+                        </button>
+                        <button onclick="state.activeTab = 'STANDINGS'; render();" class="px-3 py-2 rounded-lg text-xs font-semibold transition ${state.activeTab === 'STANDINGS' ? 'bg-ea-green text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}">
+                            <i class="fas fa-trophy ml-1"></i> טבלת הליגה
+                        </button>
+                        <button onclick="state.activeTab = 'MATCH'; render();" class="px-3 py-2 rounded-lg text-xs font-semibold transition ${state.activeTab === 'MATCH' ? 'bg-ea-green text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}">
+                            <i class="fas fa-gamepad ml-1"></i> משחק הבא
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Active Tab Content -->
+                <main class="flex-1">
+                    ${renderTabContent()}
+                </main>
+            `;
+        }
+
+        function renderTabContent() {
+            switch (state.activeTab) {
+                case 'DASHBOARD': return renderDashboardTab();
+                case 'TACTICS': return renderTacticsTab();
+                case 'TRANSFERS': return renderTransfersTab();
+                case 'STANDINGS': return renderStandingsTab();
+                case 'MATCH': return renderMatchTab();
+                default: return renderDashboardTab();
+            }
+        }
+
+        function renderDashboardTab() {
+            const userStand = state.standings.find(s => s.name === state.userClub.name) || { pts: 0, played: 0 };
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Card 1: Club Stats -->
+                    <div class="glass-panel p-5 rounded-xl border border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-200">סטטוס מועדון</h3>
+                            <i class="fas fa-shield-alt text-ea-green text-xl"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">קבוצה:</span>
+                                <span class="font-bold text-white">${state.userClub.name}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">תקציב העברות:</span>
+                                <span class="font-bold text-ea-green">₪${state.budget.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                                <span class="text-slate-400">כמות שחקנים בסגל:</span>
+                                <span class="font-bold text-white">${state.squad.length}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-400">ניקוד בליגה:</span>
+                                <span class="font-bold text-yellow-400">${userStand.pts} נק' (${userStand.played} משחקים)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Quick Management -->
+                    <div class="glass-panel p-5 rounded-xl border border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-200">ניהול מהיר</h3>
+                            <i class="fas fa-bolt text-yellow-400 text-xl"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <button onclick="state.activeTab = 'TACTICS'; render();" class="w-full py-3 px-4 glass-card rounded-lg text-right text-sm font-semibold hover:border-ea-green transition flex items-center justify-between">
+                                <span>עריכת הרכב וטקטיקה</span>
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <button onclick="state.activeTab = 'TRANSFERS'; render();" class="w-full py-3 px-4 glass-card rounded-lg text-right text-sm font-semibold hover:border-ea-green transition flex items-center justify-between">
+                                <span>חלון העברות ומכירת שחקנים</span>
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <button onclick="state.activeTab = 'MATCH'; render();" class="w-full py-3 px-4 bg-ea-green/10 border border-ea-green/30 text-ea-green rounded-lg text-right text-sm font-bold hover:bg-ea-green hover:text-slate-950 transition flex items-center justify-between">
+                                <span>עבור למשחק הליגה הקרוב</span>
+                                <i class="fas fa-play text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Top Squad Players -->
+                    <div class="glass-panel p-5 rounded-xl border border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-200">כוכבי הקבוצה</h3>
+                            <i class="fas fa-star text-yellow-400 text-xl"></i>
+                        </div>
+                        <div class="space-y-2 max-h-48 overflow-y-auto">
+                            ${[...state.squad].sort((a,b) => b.overall - a.overall).slice(0, 4).map(p => `
+                                <div class="flex justify-between items-center p-2 rounded-lg bg-slate-900/50 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-bold flex items-center justify-center">${p.num}</span>
+                                        <span class="font-semibold text-white">${p.name}</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-black">${p.overall} OVR</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTacticsTab() {
+            const formPositions = FORMATIONS[state.formation];
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Visual Pitch Layout -->
+                    <div class="lg:col-span-2 glass-panel p-4 rounded-xl border border-slate-800 flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center gap-3">
+                                <h3 class="font-bold text-slate-200">מערך טקטי</h3>
+                                <select onchange="state.formation = this.value; render();" class="bg-slate-900 text-white text-xs border border-slate-700 rounded-lg p-1.5 font-bold focus:outline-none">
+                                    <option value="4-3-3" ${state.formation === '4-3-3' ? 'selected' : ''}>4-3-3</option>
+                                    <option value="4-2-3-1" ${state.formation === '4-2-3-1' ? 'selected' : ''}>4-2-3-1</option>
+                                    <option value="3-5-2" ${state.formation === '3-5-2' ? 'selected' : ''}>3-5-2</option>
+                                </select>
+                            </div>
+                            <span class="text-xs text-slate-400">לחץ על שחקנים בהרכב/ספסל כדי להחליף ביניהם</span>
+                        </div>
+
+                        <!-- Football Pitch Graphic -->
+                        <div class="football-pitch w-full h-[480px] rounded-xl relative">
+                            <!-- Pitch Lines -->
+                            <div class="pitch-line top-1/2 left-0 right-0 border-t"></div>
+                            <div class="pitch-line top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full border"></div>
+                            <div class="pitch-line bottom-0 left-1/2 -translate-x-1/2 w-48 h-20 border-t border-x"></div>
+                            <div class="pitch-line top-0 left-1/2 -translate-x-1/2 w-48 h-20 border-b border-x"></div>
+
+                            <!-- Starting XI Player Tokens on Pitch -->
+                            ${state.startingXI.map((player, idx) => {
+                                const posCoord = formPositions[idx] || { x: 50, y: 50 };
+                                const isSelected = state.selectedPitchIndex === idx;
+                                return `
+                                    <div onclick="handlePitchPlayerClick(${idx})" 
+                                         style="left: ${posCoord.x}%; top: ${posCoord.y}%; transform: translate(-50%, -50%);"
+                                         class="absolute cursor-pointer flex flex-col items-center group transition ${isSelected ? 'selected-swap' : ''}">
+                                        
+                                        <div class="relative w-9 h-9 rounded-full bg-slate-950 border-2 ${isSelected ? 'border-ea-green' : 'border-amber-400'} flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                                            <span class="text-amber-300 font-black text-xs">${player.num}</span>
+                                            <span class="absolute -top-1 -right-1 px-1 bg-slate-800 text-[9px] font-bold text-ea-green rounded border border-slate-700">${player.pos}</span>
+                                        </div>
+
+                                        <div class="mt-1 bg-slate-950/80 px-2 py-0.5 rounded text-[10px] font-bold text-white border border-slate-800 shadow whitespace-nowrap">
+                                            ${player.name}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Bench & Jersey Number Editing Sidebar -->
+                    <div class="glass-panel p-4 rounded-xl border border-slate-800 flex flex-col">
+                        <h3 class="font-bold text-slate-200 mb-3">ספסל החלפות ושחקנים</h3>
+                        
+                        <div class="flex-1 overflow-y-auto space-y-2 max-h-[480px] pr-1">
+                            ${state.bench.map((player, idx) => {
+                                const isSelected = state.selectedBenchIndex === idx;
+                                return `
+                                    <div class="p-2.5 rounded-lg border transition flex items-center justify-between ${isSelected ? 'bg-ea-green/10 border-ea-green' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'}">
+                                        
+                                        <div onclick="handleBenchPlayerClick(${idx})" class="flex items-center gap-3 cursor-pointer flex-1">
+                                            <div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-amber-300">
+                                                ${player.num}
+                                            </div>
+                                            <div>
+                                                <div class="text-xs font-bold text-white">${player.name}</div>
+                                                <div class="text-[10px] text-slate-400">${player.pos} • OVR: ${player.overall}</div>
+                                            </div>
+                                        </div>
+
+                                        <button onclick="editPlayerNumber('${player.id}')" title="שנה מספר חולצה" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded border border-slate-700">
+                                            <i class="fas fa-tshirt text-ea-green ml-1"></i> שנה מספר
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTransfersTab() {
+            return `
+                <div class="space-y-6">
+                    <!-- Transfer Tab Switcher -->
+                    <div class="flex gap-4 border-b border-slate-800 pb-3">
+                        <h3 class="font-bold text-lg text-white">חלון העברות רשמי</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Buy Players Market -->
+                        <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-ea-green mb-3 flex items-center justify-between">
+                                <span><i class="fas fa-shopping-cart ml-1"></i> שחקנים זמינים לרכישה</span>
+                                <span class="text-xs text-slate-400">תקציב: ₪${state.budget.toLocaleString()}</span>
+                            </h4>
+
+                            <div class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                                ${state.market.map(player => `
+                                    <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition">
+                                        <div>
+                                            <div class="text-sm font-bold text-white">${player.name}</div>
+                                            <div class="text-xs text-slate-400">${player.pos} • ${player.clubName} • OVR: <span class="text-amber-400 font-bold">${player.overall}</span></div>
+                                            <div class="text-xs text-ea-green font-bold mt-0.5">₪${player.val.toLocaleString()}</div>
+                                        </div>
+
+                                        <button onclick="buyPlayer('${player.id}')" class="px-3 py-1.5 bg-ea-green/10 border border-ea-green/40 hover:bg-ea-green hover:text-slate-950 text-ea-green text-xs font-bold rounded-lg transition">
+                                            קנה שחקן
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Sell My Players -->
+                        <div class="glass-panel p-4 rounded-xl border border-slate-800">
+                            <h4 class="font-bold text-red-400 mb-3 flex items-center justify-between">
+                                <span><i class="fas fa-dollar-sign ml-1"></i> הסגל שלי למכירה</span>
+                                <span class="text-xs text-slate-400">${state.squad.length} שחקנים</span>
+                            </h4>
+
+                            <div class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                                ${state.squad.map(player => `
+                                    <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition">
+                                        <div>
+                                            <div class="text-sm font-bold text-white">${player.name} (#${player.num})</div>
+                                            <div class="text-xs text-slate-400">${player.pos} • OVR: <span class="text-amber-400 font-bold">${player.overall}</span></div>
+                                            <div class="text-xs text-emerald-400 font-bold mt-0.5">ערך: ₪${player.val.toLocaleString()}</div>
+                                        </div>
+
+                                        <button onclick="sellPlayer('${player.id}')" class="px-3 py-1.5 bg-red-500/10 border border-red-500/40 hover:bg-red-500 hover:text-white text-red-400 text-xs font-bold rounded-lg transition">
+                                            מכור שחקן
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStandingsTab() {
+            return `
+                <div class="glass-panel p-5 rounded-xl border border-slate-800">
+                    <h3 class="font-bold text-lg text-white mb-4">טבלת ליגת WINNER - עונת 2026/27</h3>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-xs md:text-sm">
+                            <thead class="bg-slate-900/80 text-slate-400 uppercase font-bold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">מיקום</th>
+                                    <th class="p-3">קבוצה</th>
+                                    <th class="p-3">משחקים</th>
+                                    <th class="p-3">נצחונות</th>
+                                    <th class="p-3">תיקו</th>
+                                    <th class="p-3">הפסדים</th>
+                                    <th class="p-3">שערי זכות</th>
+                                    <th class="p-3">שערי חובה</th>
+                                    <th class="p-3">הפרש</th>
+                                    <th class="p-3 text-ea-green">נקודות</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                                ${state.standings.map((team, idx) => {
+                                    const isUser = team.name === state.userClub.name;
+                                    return `
+                                        <tr class="${isUser ? 'bg-ea-green/10 font-bold text-white' : 'hover:bg-slate-900/40 text-slate-300'}">
+                                            <td class="p-3 font-black">${idx + 1}</td>
+                                            <td class="p-3 flex items-center gap-2">
+                                                <img src="${team.badge}" class="w-5 h-5 object-contain" alt="">
+                                                <span>${team.name} ${isUser ? '(אתה)' : ''}</span>
+                                            </td>
+                                            <td class="p-3">${team.played}</td>
+                                            <td class="p-3 text-emerald-400">${team.wins}</td>
+                                            <td class="p-3 text-slate-400">${team.draws}</td>
+                                            <td class="p-3 text-red-400">${team.losses}</td>
+                                            <td class="p-3">${team.gf}</td>
+                                            <td class="p-3">${team.ga}</td>
+                                            <td class="p-3">${team.gd > 0 ? '+' + team.gd : team.gd}</td>
+                                            <td class="p-3 font-black text-amber-400 text-base">${team.pts}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMatchTab() {
+            const sim = state.matchSim;
+            return `
+                <div class="max-w-3xl mx-auto glass-panel p-6 rounded-2xl border border-slate-800 text-center">
+                    <h3 class="text-xl font-bold text-slate-200 mb-2">סימולציית משחק בלייב - מחזור ${state.currentRound}</h3>
+                    <p class="text-xs text-slate-400 mb-6">מנוע המשחק המעודכן - שוערים מוגנים ולא יבקיעו שערים</p>
+
+                    <!-- Scoreboard -->
+                    <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 flex items-center justify-between mb-6 shadow-2xl">
+                        <div class="flex-1 text-center">
+                            <h4 class="font-bold text-lg text-white mb-1">${sim.homeTeam || state.userClub.name}</h4>
+                            <span class="text-xs text-slate-400">מארחת</span>
+                        </div>
+
+                        <div class="px-6 py-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center gap-4">
+                            <span class="text-4xl font-black text-ea-green">${sim.homeGoals}</span>
+                            <span class="text-slate-600 font-bold text-xl">:</span>
+                            <span class="text-4xl font-black text-ea-green">${sim.awayGoals}</span>
+                        </div>
+
+                        <div class="flex-1 text-center">
+                            <h4 class="font-bold text-lg text-white mb-1">${sim.awayTeam || 'יריבה באקראי'}</h4>
+                            <span class="text-xs text-slate-400">אורחת</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress / Timer -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>דקה: ${sim.timer}'</span>
+                            <span>${sim.inProgress ? 'משחק באירוע לייב...' : (sim.timer >= 90 ? 'משחק הסתיים' : 'מוכן לשריקת הפתיחה')}</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+                            <div class="bg-ea-green h-full transition-all duration-300" style="width: ${(sim.timer / 90) * 100}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    ${!sim.inProgress ? `
+                        <button onclick="startMatchSimulation()" class="w-full py-4 bg-gradient-to-r from-ea-green to-emerald-600 text-slate-950 font-black text-lg rounded-xl hover:opacity-90 transition shadow-lg shadow-emerald-900/30 mb-6">
+                            ${sim.timer >= 90 ? 'שחק משחק נוסף' : 'התחל סימולציית משחק'} <i class="fas fa-play mr-2"></i>
+                        </button>
+                    ` : ''}
+
+                    <!-- Live Commentary Feed -->
+                    <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-right h-48 overflow-y-auto space-y-2">
+                        <div class="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-2">אירועי המשחק:</div>
+                        ${sim.events.length === 0 ? '<div class="text-xs text-slate-600 text-center py-8">לחץ על הכפתור למעלה כדי להתחיל את המשחק</div>' : ''}
+                        ${sim.events.map(e => `
+                            <div class="text-xs text-slate-300 p-2 rounded bg-slate-900 border border-slate-800/80">
+                                <span class="text-ea-green font-bold ml-2">${e.minute}'</span>
+                                <span>${e.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
